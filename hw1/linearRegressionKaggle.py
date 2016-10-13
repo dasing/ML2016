@@ -7,7 +7,7 @@ from numpy import ones, zeros, mean, std
 stride = 1 #sample rate 
 datafeatureNum = 18
 featureNum = 18 
-iteration = 100000
+iteration = 1000000
 alpha = 1 #initialization of learning rate
 delta = 0.0000001 #adagrad parameter, for nurmical stability
 
@@ -189,25 +189,25 @@ def gradientDescent( it, yHead, iteration, alpha, theta ):
 	accumulate = 0
 
 	for i in range( 0, iteration ):
-		prediction = it.dot(theta)
-		# print(prediction)
-		# break
 
+		#compute prediction
+		prediction = it.dot(theta)
+		
 		for x in range( len(theta) ):
 			tmp = it[ :, x ]
 			tmp.shape = ( m, 1 )
 			
-			#print( (prediction - yHead).shape )
-			# print("theta " + str(x) + " end ")
+			#compute gradient
 			derivative =  ( (( prediction - yHead )*tmp ).sum() )/m 
 			accumulate = accumulate + derivative*derivative
 			learningRate = alpha/( delta+sqrt(accumulate) ) 
-			#print(learningRate)
+
+			#update theta
 			theta[x][0] = theta[x][0] - learningRate*derivative
 
+		#compute cost 
 		J_History[i][0] = computeCost( it, yHead, theta )
-		print("finish iteration " + str(i) + ", loss is " + str(J_History[i][0]) )
-
+		
 	return theta, J_History
 
 
