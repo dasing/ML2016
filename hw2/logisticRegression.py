@@ -4,7 +4,7 @@ import math
 from numpy import ones, zeros, mean, std
 
 #parameter
-iteration = 10
+iteration = 1
 alpha = 0.001
 featureNum = 57
 
@@ -30,6 +30,7 @@ def loadData(fileName):
 		count = count+1
 
 	dataList = np.matrix( dataList, dtype = np.float64 )
+	print("count = " + str(count) )
 
 	return dataList, yHead, count
 
@@ -49,19 +50,45 @@ def manageData( dataList, count ):
 
 	return trainData
 
-def sigmoid( x ):
-	return( 1 / ( 1 + math.exp(-x) ))
+def sigmoid( X ):
 
-def gradientDescent( trainData, yHead, weight ):
+	length = (X.shape)[0]
+	for i in range( length ):
+		#print("i = " + str(i) +" , origin value = " + str( X[ i, 0 ]) )
+		X[ i, 0 ] = 1 / ( 1 + math.exp( -X[ i, 0 ] ) )
+		#print("afterValue = " + str( X[ i, 0]))
+	return X
+
+def computeCost( trainData, yHead, weight ):
+
+	m = yHead.size
+	for x in range( m ):
+		prediction = sigmoid( trainData.dot(weight) )
+
+		yHead*numpy.log( prediction ) + ( 1 - )
+
+
+def gradientDescent( trainData, yHead, weight, count ):
+
+	J_History = zeros( shape = ( iteration, 1 ) )
 
 	for x in range( 0, iteration ):
 		prediction =  sigmoid( trainData.dot(weight) )
 
-		print( prediction )
+		for i in range( len(weight) ):
+
+			tmp = trainData[ :, i ]
+			tmp.shape = ( count, 1 )
+
+			derivative = ( ( ( prediction - yHead )*tmp ).sum() )/count
+			weight[x][0] = weight[x][0] - alpha*derivative
+
+		J_History[x][0] = computeCost( trainData, yHead, weight )
 
 
+		
 dataList, yHead, count = loadData('spam_data/spam_train.csv')
 #checkData(dataList, yHead )
 trainData = manageData( dataList, count )
 weight = ones( shape = ( featureNum+1, 1 ) )
-gradientDescent( trainData, yHead, weight )
+gradientDescent( trainData, yHead, weight, count  )
