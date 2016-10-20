@@ -4,7 +4,7 @@ import math
 from numpy import ones, zeros, mean, std
 
 #parameter
-iteration = 1
+iteration = 100
 alpha = 0.000001
 featureNum = 57
 
@@ -53,17 +53,21 @@ def manageData( dataList, count ):
 
 def sigmoid( X ):
 
-	length = (X.shape)[0]
-	for i in range( length ):
-		#print("i = " + str(i) +" , origin value = " + str( X[ i, 0 ]) )
-		X[ i, 0 ] = 1 / ( 1 + math.exp( -X[ i, 0 ] ) )
-		#print("afterValue = " + str( X[ i, 0]))
-	return X
+	# length = (X.shape)[0]
+	# for i in range( length ):
+	# 	#print("i = " + str(i) +" , origin value = " + str( X[ i, 0 ]) )
+	# 	X[ i, 0 ] = 1 / ( 1 + math.exp( -X[ i, 0 ] ) )
+	# 	#print("afterValue = " + str( X[ i, 0]))
+	# return X
+	den = 1.0 + np.exp( -1.0*X)
+	d = 1.0/den
+
+	return d
 
 def computeCost( trainData, yHead, weight ):
 
 	m = yHead.size
-	print("m = " + str(m) )
+	#print("m = " + str(m) )
 	prediction = sigmoid( trainData.dot(weight) )		
 	loss = ((yHead*np.log(prediction) + (1-yHead)*np.log(1-prediction)).sum())/m
 
@@ -75,6 +79,7 @@ def gradientDescent( trainData, yHead, weight, count ):
 	J_History = zeros( shape = ( iteration, 1 ) )
 
 	for x in range( 0, iteration ):
+
 		prediction =  sigmoid( trainData.dot(weight) )
 
 		for i in range( len(weight) ):
@@ -83,9 +88,10 @@ def gradientDescent( trainData, yHead, weight, count ):
 			tmp.shape = ( count, 1 )
 
 			derivative = ( ( ( prediction - yHead )*tmp ).sum() )/count
-			weight[x][0] = weight[x][0] - alpha*derivative
+			weight[i][0] = weight[i][0] - alpha*derivative
 
 		J_History[x][0] = computeCost( trainData, yHead, weight )
+		print("finish iteration " + str(x) + ", error is "+ str( J_History[x][0] ) )
 
 
 		
