@@ -5,7 +5,7 @@ from numpy import ones, zeros, mean, std
 
 #parameter
 iteration = 1
-alpha = 0.001
+alpha = 0.000001
 featureNum = 57
 
 def loadData(fileName):
@@ -29,6 +29,7 @@ def loadData(fileName):
 		dataList.append(data)
 		count = count+1
 
+	yHead = np.matrix( yHead, dtype = np.float64 )
 	dataList = np.matrix( dataList, dtype = np.float64 )
 	print("count = " + str(count) )
 
@@ -62,10 +63,11 @@ def sigmoid( X ):
 def computeCost( trainData, yHead, weight ):
 
 	m = yHead.size
-	for x in range( m ):
-		prediction = sigmoid( trainData.dot(weight) )
+	print("m = " + str(m) )
+	prediction = sigmoid( trainData.dot(weight) )		
+	loss = ((yHead*np.log(prediction) + (1-yHead)*np.log(1-prediction)).sum())/m
 
-		yHead*numpy.log( prediction ) + ( 1 - )
+	return (-1)*loss
 
 
 def gradientDescent( trainData, yHead, weight, count ):
@@ -91,4 +93,5 @@ dataList, yHead, count = loadData('spam_data/spam_train.csv')
 #checkData(dataList, yHead )
 trainData = manageData( dataList, count )
 weight = ones( shape = ( featureNum+1, 1 ) )
-gradientDescent( trainData, yHead, weight, count  )
+J_History = gradientDescent( trainData, yHead, weight, count  )
+print(J_History)
