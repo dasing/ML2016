@@ -3,12 +3,14 @@ import csv
 import math
 from numpy import ones, zeros, mean, std
 from math import sqrt
+import time
 
 #parameter
-iteration = 480
+iteration = 100000
 alpha = 1
 delta = 0.0000001
 featureNum = 57
+batchSize = 10
 
 def loadData(fileName):
 
@@ -24,18 +26,21 @@ def loadData(fileName):
 		data = []
 		for i in range( 1, len(row) ):
 			if i == len(row)-1:
-				yHead.append( row[i] )
+				yHead.append( float(row[i]) )
 				continue
-			data.append( row[i] )
+			data.append( float(row[i]) )
 
 		dataList.append(data)
 		count = count+1
 
-	yHead = np.matrix( yHead, dtype = np.float64 )
+	label = zeros( shape = (count, 1) )
+	for x in range(count):
+		label[ x, 0 ] = yHead[x]
+
 	dataList = np.matrix( dataList, dtype = np.float64 )
 	print("count = " + str(count) )
 
-	return dataList, yHead, count
+	return dataList, label, count
 
 def loadTestData(fileName):
 
@@ -57,10 +62,12 @@ def loadTestData(fileName):
 
 def checkData( dataList, yHead ):
 
+	print(yHead.shape)
+	#print("size = " + str((yHead.shape)[0]) )
 	for x in range( len(yHead) ):
-		print("label = " + yHead[x] )
+		print("label = " + str(yHead.item(x) ) )
 		print("data = " )
-		print(dataList[x])
+		print( dataList[x] )
 
 #add bias to dataList
 def manageData( dataList, count ):
@@ -72,9 +79,7 @@ def manageData( dataList, count ):
 
 def sigmoid( X ):
 
-	den = 1.0 + np.exp( -1.0*X)
-	d = 1.0/den
-
+	d = 1.0/(1.0 + np.exp( -1.0*X))
 	return d
 
 def computeCost( trainData, yHead, weight ):
@@ -89,7 +94,7 @@ def computeCost( trainData, yHead, weight ):
 
 def computeErrorRate( trainData, yHead, weight ):
 
-	m = yHead.size
+	m = len(yHead)
 	diff = 0
 	prediction = sigmoid( trainData.dot(weight) )
 
@@ -113,25 +118,51 @@ def gradientDescent( trainData, yHead, weight, count ):
 
 	for x in range( 0, iteration ):
 
+		
 		prediction =  sigmoid( trainData.dot(weight) )
+		
 
-		for i in range( len(weight) ):
+		for i in range( featureNum+1 ):
 
+			
 			tmp = trainData[ :, i ]
 			tmp.shape = ( count, 1 )
-
+		
 			derivative = ( ( ( prediction - yHead )*tmp ).sum() )/count
+				
 			accumulate = accumulate + derivative*derivative
 			learningRate = alpha/(delta+sqrt(accumulate))
-
+			
 			#print("learning rate is " + str(learningRate) )
 			weight[i][0] = weight[i][0] - learningRate*derivative
+			
 
 		J_History[x][0] = computeErrorRate( trainData, yHead, weight )
 		print("finish iteration " + str(x) + ", error is "+ str( J_History[x][0] ) )
 
-	return J_History
+	return weight, J_History
 
+def featureNormalization( trainData ):
+
+	mean_r = []
+	std_r = []
+	trainData_norm = trainData
+
+	for x in range( featureNum ):
+		m = mean( trainData[ :, x ] )
+		s = std( trainData[ :, x ] )
+		mean_r.append(m)
+		std_r.append(s)
+		trainData_norm[ :, x ] = ( trainData_norm[ :, x ] - m )/s
+
+	return trainData_norm, mean_r, std_r
+
+def testDataNormalization( testData,  mean_r, std_r ):
+
+	for x in range( featureNum ):
+		testData[ :, x ] = ( testData[ :, x] - mean_r[x] ) / std_r[x]
+
+	return testData
 
 def computeTestDataResult( testData, weight ):
 
@@ -159,18 +190,17 @@ def writeCSV( result ):
 	w.writerows(result)
 	f.close()
 
-		
-dataList, yHead, count = loadData('spam_data/spam_train.csv')
-#checkData(dataList, yHead )
+######Training		
+dataList, label, count = loadData('spam_data/spam_train.csv')
 trainData = manageData( dataList, count )
-weight = ones( shape = ( featureNum+1, 1 ) )
-J_History = gradientDescent( trainData, yHead, weight, count  )
+trainData, mean_r, std_r = featureNormalization( trainData )
+weight = zeros( shape = ( featureNum+1, 1 ) )
+weight, J_History = gradientDescent( trainData, label, weight, count  )
 
-#print(J_History)
 
+######Testing
 testData, testDataCount = loadTestData('spam_data/spam_test.csv')
+testData = testDataNormalization( testData, mean_r, std_r )
 result = computeTestDataResult( testData, weight )
 writeCSV(result)
-
-
 
