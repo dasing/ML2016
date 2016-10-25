@@ -52,7 +52,7 @@ def loadData(fileName):
 def checkData( dataList, yHead ):
 
 	print(yHead.shape)
-	#print("size = " + str((yHead.shape)[0]) )
+	
 	for x in range( len(yHead) ):
 		print("label = " + str(yHead.item(x) ) )
 		print("data = " )
@@ -76,7 +76,6 @@ def computeCost( trainData, yHead, weight ):
 	m = yHead.size
 	#print("m = " + str(m) )
 	prediction = sigmoid( trainData.dot(weight) )	
-
 	loss = ((yHead*np.log(prediction) + (1-yHead)*np.log(1-prediction)).sum())/m
 
 	return (-1)*loss
@@ -113,7 +112,6 @@ def gradientDescent( trainData, yHead, weight, count ):
 
 		for i in range( featureNum+1 ):
 
-			
 			tmp = trainData[ :, i ]
 			tmp.shape = ( count, 1 )
 		
@@ -122,14 +120,13 @@ def gradientDescent( trainData, yHead, weight, count ):
 			accumulate = accumulate + derivative*derivative
 			learningRate = alpha/(delta+sqrt(accumulate))
 			
-			#print("learning rate is " + str(learningRate) )
 			weight[i][0] = weight[i][0] - learningRate*derivative
 			
-
 		J_History[x][0] = computeErrorRate( trainData, yHead, weight )
 		print("finish iteration " + str(x) + ", error is "+ str( J_History[x][0] ) )
 
 	return weight, J_History
+
 
 def featureNormalization( trainData ):
 
@@ -145,7 +142,6 @@ def featureNormalization( trainData ):
 		trainData_norm[ :, x ] = ( trainData_norm[ :, x ] - m )/s
 
 	return trainData_norm, mean_r, std_r
-
 
 
 def OutputModel( weight, mean_r, std_r ):

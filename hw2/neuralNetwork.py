@@ -190,7 +190,7 @@ class neuralNetwork:
 			errorRate = error/m
 			print( "finish iteraion " + str(i) + ", error rate is " + str(errorRate) )
 
-			return self.wi, self.wo
+		return self.wi, self.wo
 
 
 def loadData(fileName):
