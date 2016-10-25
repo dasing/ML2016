@@ -27,8 +27,7 @@ def loadData(fileName):
 
 	f = open( fileName, 'r', encoding = "ISO-8859-1" )
 	for row in csv.reader(f):
-		#print("row size = " + str(len(row))) 
-		#print(row)
+		
 		data = []
 		for i in range( 1, len(row) ):
 			if i == len(row)-1:
@@ -166,8 +165,6 @@ trainData, mean_r, std_r = featureNormalization( trainData )
 weight = zeros( shape = ( featureNum+1, 1 ) )
 weight, J_History = gradientDescent( trainData, label, weight, count  )
 
-# print( mean_r )
-# print( weight )
 
 ######Output model
 OutputModel( weight, mean_r, std_r )

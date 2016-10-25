@@ -4,6 +4,7 @@ import numpy as np
 from numpy import ones, zeros, mean, std
 from math import sqrt
 import csv
+import sys
 
 #parameter
 inputNode = 57
@@ -14,6 +15,10 @@ iteration = 100
 featureNum = 57
 delta = 0.0000001
 M = 0.1
+
+#sys parameter
+fileName = sys.argv[1]
+modelName = sys.argv[2]
 
 
 random.seed(0)
@@ -185,6 +190,8 @@ class neuralNetwork:
 			errorRate = error/m
 			print( "finish iteraion " + str(i) + ", error rate is " + str(errorRate) )
 
+			return self.wi, self.wo
+
 
 def loadData(fileName):
 
@@ -241,51 +248,36 @@ def featureNormalization( trainData ):
 	return trainData_norm, mean_r, std_r
 
 
-def loadTestData(fileName):
-
-	dataList = []
-	count = 0
-
-	f = open( fileName, 'r', encoding = "ISO-8859-1" )
-	for row in csv.reader(f):
-		data = []
-		for i in range( 1, len(row) ):
-			data.append( row[i] )
-
-		dataList.append(data)
-		count = count + 1
-
-	dataList = np.matrix( dataList, dtype = np.float64 )
-	return dataList, count
 
 
-def testDataNormalization( testData,  mean_r, std_r ):
+def outputModel( mean_r, std_r, wi, wo ):
 
-	for x in range( featureNum ):
-		testData[ :, x ] = ( testData[ :, x] - mean_r[x] ) / std_r[x]
-	return testData
+	# wi -> 58*11, wo -> 11*1
+	model = np.ones( shape = ( 71, featureNum+1 ) )
+	model[ 0, : featureNum ] = mean_r
+	model[ 1, : featureNum ] = std_r
 
+	for x in range( 58 ): #store wi
+		model[ x+2, : hiddenLayerNum+1 ] = wi[ x, : ]
 
-def writeCSV( result ):
-	f = open('neuralNetwork.csv', 'w' )
-	w = csv.writer(f)
-	w.writerows(result)
-	f.close()
+	for x in range( 11 ):
+		model[ 60+x, 0 ] = wo[ x, 0 ]
 
+	fullModelName = modelName + '.npy' 
+	np.save( fullModelName, model )
 
 ######Training		
-dataList, label, count = loadData('spam_data/spam_train.csv')
+dataList, label, count = loadData(fileName)
 trainData = manageData( dataList, count )
 trainData, mean_r, std_r = featureNormalization( trainData )
-#weight = zeros( shape = ( featureNum+1, 1 ) )
 
 NN = neuralNetwork( inputNode, hiddenLayerNum, outputNode )
-NN.train( trainData, label )
+wi, wo = NN.train( trainData, label )
 
-#######Testing
-testData, testDataCount = loadTestData('spam_data/spam_test.csv')
-testData = testDataNormalization( testData, mean_r, std_r )
-result = NN.test( testData )
-writeCSV(result) 
+
+######Output model
+outputModel( mean_r, std_r, wi, wo )
+
+
 
 
