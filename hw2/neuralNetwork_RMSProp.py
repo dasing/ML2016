@@ -7,13 +7,13 @@ import csv
 
 #parameter
 inputNode = 57
-hiddenLayerNum = 10 
+hiddenLayerNum = 5 
 outputNode = 1
 alpha = 0.1
-iteration = 100
+iteration = 50
 featureNum = 57
 delta = 0.0000001
-M = 0.1
+decayRate  = 0.999
 
 
 random.seed(0)
@@ -49,8 +49,8 @@ class neuralNetwork:
 		self.sgo = zeros( shape = ( self.nh, self.no ) )
 
 		#momentom
-		self.ci = zeros( shape = ( self.ni, self.nh ) )
-		self.co = zeros( shape = ( self.nh, self.no ) )
+		# self.ci = zeros( shape = ( self.ni, self.nh ) )
+		# self.co = zeros( shape = ( self.nh, self.no ) )
 
 		for y in range( self.ni ):
 			for x in range( self.nh ):
@@ -109,22 +109,20 @@ class neuralNetwork:
 		for j in range( self.nh ):
 			for k in range( self.no ):
 				change = outputDeltas[ k, 0 ]*self.ah[ j, 0 ]
-				self.sgo[ j, k ] += change*change
+				self.sgo[ j, k ] = decayRate*self.sgo[ j, k ] + ( 1 - decayRate )*change*change
 				learningRate0 = alpha/( delta+sqrt(self.sgo[ j, k ] ) )
-				self.wo[ j, k ] = self.wo[j, k ] + learningRate0*change + M*self.co[ j, k ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.co[ j, k ] = change
+				self.wo[ j, k ] = self.wo[j, k ] + learningRate0*change 
+				#self.co[ j, k ] = change
 
 
 		#update input weights
 		for i in range( self.ni ):
 			for j in range( self.nh ):
 				change = hiddenDeltas[j]*self.ai[i]
-				self.sgi[ i, j ] += change*change
+				self.sgi[ i, j ] =  decayRate*self.sgi[ i, j ] + ( 1 - decayRate )*change*change
 				learningRate1 = alpha/( delta+sqrt(self.sgi[ i, j ] ) )
-				self.wi[i, j] = self.wi[i, j] + learningRate1*change + M*self.ci[ i, j ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.ci[ i, j ] = change
+				self.wi[i, j] = self.wi[i, j] + learningRate1*change
+				#self.ci[ i, j ] = change
 
 
 		#calculate error

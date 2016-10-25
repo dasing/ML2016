@@ -10,11 +10,13 @@ inputNode = 57
 hiddenLayerNum = 10 
 outputNode = 1
 alpha = 0.1
-iteration = 100
+iteration = 150
 featureNum = 57
 delta = 0.0000001
 M = 0.1
-
+rho1 = 0.9
+rho2 = 0.999
+stepSize = 0.001
 
 random.seed(0)
 
@@ -87,7 +89,7 @@ class neuralNetwork:
 
 		return self.ao
 
-	def backPropagate( self, targets ):
+	def backPropagate( self, targets, t ):
 
 		if (targets.shape)[0] != self.no:
 			print("wrong number of target values")
@@ -109,23 +111,37 @@ class neuralNetwork:
 		for j in range( self.nh ):
 			for k in range( self.no ):
 				change = outputDeltas[ k, 0 ]*self.ah[ j, 0 ]
-				self.sgo[ j, k ] += change*change
-				learningRate0 = alpha/( delta+sqrt(self.sgo[ j, k ] ) )
-				self.wo[ j, k ] = self.wo[j, k ] + learningRate0*change + M*self.co[ j, k ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.co[ j, k ] = change
+				self.sgo[ j, k ] = rho2 * self.sgo[ j, k ] + ( 1 - rho2 ) * change * change
+				self.co[ j, k ] = rho1 * self.co[ j, k ] + ( 1 - rho1 ) * change
+
+				if t == 0 :
+					firstBiasMoment = self.co[ j, k ]
+					secondBiasMoment = self.sgo[ j, k ]
+				else:
+					firstBiasMoment = self.co[ j, k ] / ( 1 - math.pow( rho1, t ) )
+					secondBiasMoment = self.sgo[ j, k ] / ( 1 - math.pow( rho2, t ) )
+
+				updateDelta = ( stepSize*firstBiasMoment ) / ( sqrt(secondBiasMoment) + delta )
+				self.wo[ j, k ] = self.wo[j, k ] + updateDelta
+				
 
 
 		#update input weights
 		for i in range( self.ni ):
 			for j in range( self.nh ):
 				change = hiddenDeltas[j]*self.ai[i]
-				self.sgi[ i, j ] += change*change
-				learningRate1 = alpha/( delta+sqrt(self.sgi[ i, j ] ) )
-				self.wi[i, j] = self.wi[i, j] + learningRate1*change + M*self.ci[ i, j ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.ci[ i, j ] = change
+				self.sgi[ i, j ] = rho2 * self.sgi[ i, j ] + ( 1 - rho2 ) * change * change
+				self.ci[ i, j ] = rho1 * self.ci[ i, j ] + ( 1 - rho1 ) * change
 
+				if t == 0:
+					firstBiasMoment = self.ci[ i, j ]
+					secondBiasMoment = self.sgi[ i, j ]
+				else:
+					firstBiasMoment = self.ci[ i, j ] / ( 1 - math.pow( rho1, t ) )
+					secondBiasMoment = self.sgi[ i, j ] / ( 1 - math.pow( rho2, t ) )
+				updateDelta = ( stepSize*firstBiasMoment ) / ( sqrt(secondBiasMoment) + delta )
+				self.wi[i , j] = self.wi[i ,j] + updateDelta
+				
 
 		#calculate error
 		error = 0.0
@@ -179,7 +195,7 @@ class neuralNetwork:
 
 				tmpLabel = trainLabel[ x, : ]
 				tmpLabel.shape = ( outputNode, 1 )
-				tmp = self.backPropagate( tmpLabel )
+				tmp = self.backPropagate( tmpLabel, i )
 				error += tmp
 
 			errorRate = error/m
@@ -267,7 +283,7 @@ def testDataNormalization( testData,  mean_r, std_r ):
 
 
 def writeCSV( result ):
-	f = open('neuralNetwork.csv', 'w' )
+	f = open('neuralNetwork_Adam.csv', 'w' )
 	w = csv.writer(f)
 	w.writerows(result)
 	f.close()

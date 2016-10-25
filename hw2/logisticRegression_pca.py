@@ -4,8 +4,6 @@ import math
 from numpy import ones, zeros, mean, std
 from math import sqrt
 import time
-import sys
-
 
 #parameter
 iteration = 100000
@@ -13,10 +11,6 @@ alpha = 1
 delta = 0.0000001
 featureNum = 57
 batchSize = 10
-
-#get sys argument
-fileName = sys.argv[1]
-modelName = sys.argv[2]
 
 def loadData(fileName):
 
@@ -48,7 +42,23 @@ def loadData(fileName):
 
 	return dataList, label, count
 
+def loadTestData(fileName):
 
+	dataList = []
+	count = 0
+
+	f = open( fileName, 'r', encoding = "ISO-8859-1" )
+	for row in csv.reader(f):
+		data = []
+		for i in range( 1, len(row) ):
+			data.append( row[i] )
+
+		data.append(1.0)
+		dataList.append(data)
+		count = count + 1
+
+	dataList = np.matrix( dataList, dtype = np.float64 )
+	return dataList, count
 
 def checkData( dataList, yHead ):
 
@@ -134,43 +144,96 @@ def gradientDescent( trainData, yHead, weight, count ):
 
 def featureNormalization( trainData ):
 
+	trainData = trainData.transpose()
+
 	mean_r = []
 	std_r = []
 	trainData_norm = trainData
 
 	for x in range( featureNum ):
-		m = mean( trainData[ :, x ] )
-		s = std( trainData[ :, x ] )
+		m = mean( trainData[ x, : ] )
+		s = std( trainData[ x, : ] )
 		mean_r.append(m)
 		std_r.append(s)
-		trainData_norm[ :, x ] = ( trainData_norm[ :, x ] - m )/s
+		trainData_norm[ x, : ] = ( trainData_norm[ x, : ] - m )
 
 	return trainData_norm, mean_r, std_r
 
+def percentage2n(eigVals,percentage):
+
+    sortArray=np.sort(eigVals)   #升序  
+    sortArray=sortArray[-1::-1]  #逆转，即降序  
+    arraySum=sum(sortArray)  
+    tmpSum=0  
+    num=0  
+    for i in sortArray:  
+        tmpSum+=i  
+        num+=1  
+        if tmpSum>=arraySum*percentage:  
+            return num  
 
 
-def OutputModel( weight, mean_r, std_r ):
+def pca( trainData, mean_r, std_r, percentage ):
 
-	model = np.ones( shape = ( 3, featureNum+1 ) )
-	model[ 0, : featureNum ] = mean_r
-	model[ 1, : featureNum ] = std_r
-	model[ 2, : ] = weight[ :, 0 ]
 
-	fullModelName = modelName + '.npy' 
-	np.save( fullModelName, model )
+	covTrainData = np.cov( trainData, rowvar = 0 )
+	eigvals, eigvectors = np.linalg.eig( np.mat( covTrainData) )
+	n = percentage2n(eigvals,percentage) 
+	eigValIndice = np.argsort( eigvals )
+	n_eigValIndice = eigValIndice[-1:-(n+1):-1]
+	n_eigVect = eigVects[:,n_eigValIndice]
+	lowDDataMat = trainData*n_eigVect
+	print( lowDDataMat )
+    #reconMat
+    #reconMat = ( lowDDataMat*n_eigVect.T ) + meanVal  #重构数据  
+
+def testDataNormalization( testData,  mean_r, std_r ):
+
+	for x in range( featureNum ):
+		testData[ x, : ] = ( testData[ x, :] - mean_r[x] ) / std_r[x]
+
+	return testData
+
+def computeTestDataResult( testData, weight ):
+
+	result = [['id', 'label']]
+
+	prediction = sigmoid( testData.dot(weight) )
+	m = prediction.size
+
+	for x in range( m ):
+		r = []
+		if prediction.item(x) < 0.5:
+			prediction[ x, 0 ] = 0
+		else:
+			prediction[ x, 0 ] = 1
+
+		r.append(x+1)
+		r.append(int(prediction.item(x)))
+		result.append(r)
+
+	return result
+
+def writeCSV( result ):
+	f = open('logisticRegression.csv', 'w' )
+	w = csv.writer(f)
+	w.writerows(result)
+	f.close()
 
 ######Training		
-dataList, label, count = loadData(fileName)
+dataList, label, count = loadData('spam_data/spam_train.csv')
 trainData = manageData( dataList, count )
 trainData, mean_r, std_r = featureNormalization( trainData )
-weight = zeros( shape = ( featureNum+1, 1 ) )
-weight, J_History = gradientDescent( trainData, label, weight, count  )
 
-# print( mean_r )
-# print( weight )
+pca( trainData, mean_r, std_r, 0.99 )
 
-######Output model
-OutputModel( weight, mean_r, std_r )
+# weight = zeros( shape = ( featureNum+1, 1 ) )
+# weight, J_History = gradientDescent( trainData, label, weight, count  )
 
 
+# ######Testing
+# testData, testDataCount = loadTestData('spam_data/spam_test.csv')
+# testData = testDataNormalization( testData, mean_r, std_r )
+# result = computeTestDataResult( testData, weight )
+# writeCSV(result)
 

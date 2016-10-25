@@ -8,13 +8,11 @@ import csv
 #parameter
 inputNode = 57
 hiddenLayerNum = 10 
-outputNode = 1
+outputNode = 2
 alpha = 0.1
-iteration = 100
+iteration = 50
 featureNum = 57
 delta = 0.0000001
-M = 0.1
-
 
 random.seed(0)
 
@@ -43,14 +41,6 @@ class neuralNetwork:
 		#create weights
 		self.wi = zeros( shape = ( self.ni, self.nh ) )
 		self.wo = zeros( shape = ( self.nh, self.no ) )
-
-		#accumulation gradient
-		self.sgi = zeros( shape = ( self.ni, self.nh ) )
-		self.sgo = zeros( shape = ( self.nh, self.no ) )
-
-		#momentom
-		self.ci = zeros( shape = ( self.ni, self.nh ) )
-		self.co = zeros( shape = ( self.nh, self.no ) )
 
 		for y in range( self.ni ):
 			for x in range( self.nh ):
@@ -87,7 +77,7 @@ class neuralNetwork:
 
 		return self.ao
 
-	def backPropagate( self, targets ):
+	def backPropagate( self, targets, accumulate ):
 
 		if (targets.shape)[0] != self.no:
 			print("wrong number of target values")
@@ -109,35 +99,36 @@ class neuralNetwork:
 		for j in range( self.nh ):
 			for k in range( self.no ):
 				change = outputDeltas[ k, 0 ]*self.ah[ j, 0 ]
-				self.sgo[ j, k ] += change*change
-				learningRate0 = alpha/( delta+sqrt(self.sgo[ j, k ] ) )
-				self.wo[ j, k ] = self.wo[j, k ] + learningRate0*change + M*self.co[ j, k ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.co[ j, k ] = change
-
+				#print("change = " + str(change) )
+				#accumulate += change*change
+				#learningRate = alpha/(delta+sqrt(accumulate))
+				self.wo[ j, k ] = self.wo[j, k ] + alpha*change
 
 		#update input weights
 		for i in range( self.ni ):
 			for j in range( self.nh ):
 				change = hiddenDeltas[j]*self.ai[i]
-				self.sgi[ i, j ] += change*change
-				learningRate1 = alpha/( delta+sqrt(self.sgi[ i, j ] ) )
-				self.wi[i, j] = self.wi[i, j] + learningRate1*change + M*self.ci[ i, j ]
-				#self.wo[ j, k ] = self.wo[j, k ] + alpha*change + M*self.co[ j, k ]
-				self.ci[ i, j ] = change
+				self.wi[i][j] = self.wi[i][j] + alpha*change
 
 
 		#calculate error
 		error = 0.0
-		for k in range( len(targets) ):
-			if self.ao[k] < 0.5:
-				if targets == 1:
-					error += 1.0
-			else:
-				if targets == 0:
-					error += 0.0
+		if float( targets[0] ) == 1.:
+			if self.ao[0] < self.ao[1]:
+				error += 1.0
+		else:
+			if self.ao[0] > self.ao[1]:
+				error += 1.0
 
-		return error
+		# for k in range( len(targets) ):
+		# 	if self.ao[k] < 0.5:
+		# 		if targets == 1:
+		# 			error += 1.0
+		# 	else:
+		# 		if targets == 0:
+		# 			error += 0.0
+
+		return error, accumulate
 
 	def test( self, testData ):
 
@@ -152,14 +143,15 @@ class neuralNetwork:
 			tmp = testData[ x, : ]
 			tmp.shape = ( featureNum, 1 )
 			res = self.update(tmp)
+			classify = 0
 
-			if res < 0.5:
-				res = 0
+			if res[0] > res[1]:
+				classify = 1
 			else:
-				res = 1
+				classify = 0
 
 			r.append(x+1)
-			r.append(int(res))
+			r.append(int(classify))
 			result.append(r)
 
 		return result
@@ -179,7 +171,7 @@ class neuralNetwork:
 
 				tmpLabel = trainLabel[ x, : ]
 				tmpLabel.shape = ( outputNode, 1 )
-				tmp = self.backPropagate( tmpLabel )
+				tmp, accumulate = self.backPropagate( tmpLabel, accumulate )
 				error += tmp
 
 			errorRate = error/m
@@ -200,16 +192,20 @@ def loadData(fileName):
 		data = []
 		for i in range( 1, len(row) ):
 			if i == len(row)-1:
-				yHead.append( float(row[i]) )
+				if float(row[i]) == 1. :
+					yHead.append( [ 1, 0 ] )
+				else:
+					yHead.append( [ 0, 1 ] )
 				continue
 			data.append( float(row[i]) )
 
 		dataList.append(data)
 		count = count+1
 
-	label = zeros( shape = (count, 1) )
+	label = zeros( shape = (count, outputNode) )
 	for x in range(count):
-		label[ x, 0 ] = yHead[x]
+		label[ x, 0 ] = yHead[x][0]
+		label[ x, 1 ] = yHead[x][1]
 
 	dataList = np.matrix( dataList, dtype = np.float64 )
 	print("count = " + str(count) )
@@ -277,7 +273,7 @@ def writeCSV( result ):
 dataList, label, count = loadData('spam_data/spam_train.csv')
 trainData = manageData( dataList, count )
 trainData, mean_r, std_r = featureNormalization( trainData )
-#weight = zeros( shape = ( featureNum+1, 1 ) )
+
 
 NN = neuralNetwork( inputNode, hiddenLayerNum, outputNode )
 NN.train( trainData, label )
