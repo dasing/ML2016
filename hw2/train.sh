@@ -1,1 +1,1 @@
-python3 logisticRegression.py $1 $2
+python3 neuralNetwork.py $1 $2

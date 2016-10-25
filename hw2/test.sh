@@ -1,1 +1,1 @@
-python3 logisticRegressionTest.py $1 $2 $3
+python3 neuralNetworkTest.py $1 $2 $3
