@@ -25,6 +25,7 @@ def dsigmoid(y):
 
 def loadModel():
 
+	inputModelName += '.npy'
 	model = np.load( inputModelName )
 	mean_r = model[ 0, : ]
 	std_r = model[ 1, : ]
@@ -102,6 +103,7 @@ def test(  testData, wi, wo ):
 		r = []
 
 		tmp = testData[ x, : ]
+		#print(tmp.shape)
 		tmp.shape = ( featureNum, 1 )
 		res = update(tmp)
 

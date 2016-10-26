@@ -8,10 +8,10 @@ import sys
 
 #parameter
 inputNode = 57
-hiddenLayerNum = 10 
+hiddenLayerNum = 58 
 outputNode = 1
 alpha = 0.1
-iteration = 100
+iteration = 50
 featureNum = 57
 delta = 0.0000001
 M = 0.1
