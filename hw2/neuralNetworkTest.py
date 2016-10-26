@@ -5,14 +5,14 @@ import sys
 import math
 
 #get sys argument
-inputModelName = sys.argv[1]
+inputModelName = sys.argv[1] + '.npy'
 testDataName = sys.argv[2]
 outputName = sys.argv[3]
 
 #parameter
 featureNum = 57
 outputNode = 1
-hidddenNeuron = 10
+hidddenNeuron = 58
 inputNode = 57 
 
 def sigmoid(x):
@@ -25,11 +25,10 @@ def dsigmoid(y):
 
 def loadModel():
 
-	inputModelName += '.npy'
 	model = np.load( inputModelName )
 	mean_r = model[ 0, : ]
 	std_r = model[ 1, : ]
-	wi = model[ 2 : 60, : hidddenNeuron+1 ]  #size 57*11
+	wi = model[ 2 : 60, : hidddenNeuron+1 ]  #size 57*(hiddenNeuron+1)
 	wo = model[ 60 : , : 1 ]
 
 	wi.shape = ( featureNum+1, hidddenNeuron+1 )

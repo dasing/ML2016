@@ -1,3 +1,6 @@
+############reference https://github.com/jhoward/Python-Neural-Network/blob/master/nn.py ##################
+
+
 import math
 import random
 import numpy as np
@@ -253,15 +256,18 @@ def featureNormalization( trainData ):
 def outputModel( mean_r, std_r, wi, wo ):
 
 	# wi -> 58*11, wo -> 11*1
-	model = np.ones( shape = ( 71, featureNum+1 ) )
+	modelWidth = featureNum+1 if featureNum+1 > hiddenLayerNum+1 else hiddenLayerNum+1
+	modelHeight = 2 + featureNum +1 + hiddenLayerNum +1
+	model = np.ones( shape = ( modelHeight, modelWidth ) )
 	model[ 0, : featureNum ] = mean_r
 	model[ 1, : featureNum ] = std_r
 
-	for x in range( 58 ): #store wi
+
+	for x in range( featureNum+1 ): #store wi
 		model[ x+2, : hiddenLayerNum+1 ] = wi[ x, : ]
 
-	for x in range( 11 ):
-		model[ 60+x, 0 ] = wo[ x, 0 ]
+	for x in range( hiddenLayerNum+1 ): #store wo
+		model[ (2 + featureNum +1 )+ x, 0 ] = wo[ x, 0 ]
 
 	fullModelName = modelName + '.npy' 
 	np.save( fullModelName, model )
