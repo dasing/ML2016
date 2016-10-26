@@ -14,6 +14,7 @@ outputName = sys.argv[3]
 
 def loadModel():
 
+	inputModelName += '.npy'
 	model = np.load( inputModelName )
 	mean_r = model[ 0, : ]
 	std_r = model[ 1, : ]
