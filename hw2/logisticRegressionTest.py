@@ -7,14 +7,13 @@ import csv
 featureNum = 57
 
 #get sys argument
-inputModelName = sys.argv[1]
+inputModelName = sys.argv[1] + '.npy'
 testDataName = sys.argv[2]
 outputName = sys.argv[3]
 
 
 def loadModel():
 
-	inputModelName += '.npy'
 	model = np.load( inputModelName )
 	mean_r = model[ 0, : ]
 	std_r = model[ 1, : ]
