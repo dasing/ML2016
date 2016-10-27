@@ -12,7 +12,7 @@ outputName = sys.argv[3]
 #parameter
 featureNum = 57
 outputNode = 1
-hidddenNeuron = 58
+hidddenNeuron = 10
 inputNode = 57 
 
 def sigmoid(x):
@@ -31,6 +31,7 @@ def loadModel():
 	wi = model[ 2 : 60, : hidddenNeuron+1 ]  #size 57*(hiddenNeuron+1)
 	wo = model[ 60 : , : 1 ]
 
+	#print( wi.shape )
 	wi.shape = ( featureNum+1, hidddenNeuron+1 )
 	wo.shape = ( hidddenNeuron+1, 1 )
 
