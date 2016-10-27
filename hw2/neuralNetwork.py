@@ -83,9 +83,6 @@ class neuralNetwork:
 				total += self.ai[ i, 0 ]*self.wi[ i, j ]
 			self.ah[ j, 0 ] = sigmoid(total)
 
-		# print("ah = ")
-		# print(self.ah)
-
 		#output activations
 		for k in range( self.no ):
 			total = 0.0
