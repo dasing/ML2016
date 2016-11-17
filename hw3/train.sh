@@ -1,0 +1,1 @@
+python CNN_autoencoder.py $1 $2
