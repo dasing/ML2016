@@ -2,6 +2,7 @@ import pickle, pprint
 import keras
 import numpy
 import h5py
+import sys
 import random
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -12,10 +13,13 @@ from keras.optimizers import SGD
 from keras.utils import np_utils
 from numpy import zeros, ones
 
+inputFilePath = sys.argv[1]
+modelName = sys.argv[2] + '.h5'
+
 #path
-trainDataFileName = 'data/all_label.p'
-unlabelDataFileName = 'data/all_unlabel.p'
-testDataFileName = 'data/test.p'
+trainDataFileName = inputFilePath + 'all_label.p'
+unlabelDataFileName = inputFilePath + 'all_unlabel.p'
+testDataFileName =  inputFilePath + 'test.p'
 
 #parameter
 n_train = 5000
@@ -81,7 +85,7 @@ def updateTrainData( X_train, Y_train, addData, result, n ):
         X_train[i] = newX_train[index_shuf[i]] 
         Y_train[i] = newY_train[index_shuf[i]]  
 
-    model.fit( X_train, Y_train, nb_epoch= 50, batch_size = 32, validation_split = 0.1, shuffle = True )
+    model.fit( X_train, Y_train, nb_epoch= 20, batch_size = 32, validation_split = 0.1, shuffle = True )
 
     return X_train, Y_train
 
@@ -188,7 +192,7 @@ else:
         featurewise_std_normalization=False,  # divide inputs by std of the dataset
         samplewise_std_normalization=False,  # divide each input by its std
         zca_whitening=False,  # apply ZCA whitening
-        rotation_range=15,  # randomly rotate images in the range (degrees, 0 to 180)
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
         width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
         height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
         horizontal_flip=True,  # randomly flip images
@@ -211,4 +215,4 @@ model = selfTraining( model, selfTrainingMode, X_train, Y_train )
 scores = model.evaluate( X_train, Y_train )
 print("%s : %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
-model.save('CNN_model_semiSupervisied.h5')
+model.save(modelName)
