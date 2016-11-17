@@ -1,3 +1,4 @@
+Usage: Keras TensorFlow Backend
 execution:
 ./train.sh $1 $2
 /* 
