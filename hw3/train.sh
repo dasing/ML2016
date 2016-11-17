@@ -1,0 +1,1 @@
+python kerasCNN_semiSupervisied.py $1 $2
