@@ -1,0 +1,1 @@
+python3 bow.py $1 $2
