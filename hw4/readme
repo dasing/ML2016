@@ -1,0 +1,7 @@
+execution:
+./cluster.sh $1 $2
+/* 
+	$1-> dir path constains data, shold add '/' at the end of the path, ex: 'data/'
+	$2-> output.csv
+*/
+
